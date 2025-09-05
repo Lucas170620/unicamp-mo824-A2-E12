@@ -99,3 +99,94 @@ class QBF(Evaluator[int]):
             for j in range(i, self.size):
                 print(self.A[i, j], end=" ")
             print()
+
+class SCQBF(Evaluator[int]):
+    def __init__(self, filename: str):
+        self.size, self.subsets, self.A = self.read_input(filename)
+        self.variables = self.allocate_variables()
+    
+    def read_input(self, filename: str) -> tuple[int, list[list[int]], np.ndarray]:
+        with open(filename, 'r') as file:
+            first_line = file.readline().strip()
+            size = int(first_line)
+            subsets = []
+            for _ in range(size):
+                data = file.readline().split()
+                k = int(data[0])
+                elements = list(map(int, data[1:1+k]))
+                elements = [e - 1 for e in elements]  # Converter para 0-indexed
+                subsets.append(elements)
+            
+            A = np.zeros((size, size))
+            for i in range(size):
+                line = file.readline().split()
+                for j in range(i, size):
+                    A[i, j] = float(line[j - i])
+                    if j > i:
+                        A[j, i] = 0.0
+            
+            return size, subsets, A
+    
+    def allocate_variables(self) -> np.ndarray:
+        return np.zeros(self.size)
+    
+    def set_variables(self, sol: Solution[int]) -> None:
+        self.reset_variables()
+        for elem in sol:
+            self.variables[elem] = 1.0
+    
+    def reset_variables(self) -> None:
+        self.variables.fill(0.0)
+    
+    def get_domain_size(self) -> int:
+        return self.size
+    
+    def is_cover(self, sol: Solution[int]) -> bool:
+        cover_count = np.zeros(self.size, dtype=int)
+        for elem in sol:
+            for covered_element in self.subsets[elem]:
+                cover_count[covered_element] += 1
+        return np.all(cover_count >= 1)
+    
+    def evaluate(self, sol: Solution[int]) -> float:
+        if not self.is_cover(sol):
+            return -10**9  # Penalidade para soluções inviáveis
+        self.set_variables(sol)
+        sol.cost = self.evaluateQBF()
+        return sol.cost
+    
+    def evaluateQBF(self) -> float:
+        vec_aux = np.zeros(self.size)
+        for i in range(self.size):
+            vec_aux[i] = np.sum(self.variables * self.A[i, :])
+        return np.sum(vec_aux * self.variables)
+    
+    def evaluate_insertion_cost(self, elem: int, sol: Solution[int]) -> float:
+        if elem in sol:
+            return 0.0
+        new_sol = sol.copy()
+        new_sol.append(elem)
+        return self.evaluate(new_sol) - self.evaluate(sol)
+    
+    def evaluate_removal_cost(self, elem: int, sol: Solution[int]) -> float:
+        if elem not in sol:
+            return 0.0
+        new_sol = sol.copy()
+        new_sol.remove(elem)
+        return self.evaluate(new_sol) - self.evaluate(sol)
+    
+    def evaluate_exchange_cost(self, elem_in: int, elem_out: int, sol: Solution[int]) -> float:
+        if elem_in == elem_out:
+            return 0.0
+        new_sol = sol.copy()
+        if elem_out in new_sol:
+            new_sol.remove(elem_out)
+        if elem_in not in new_sol:
+            new_sol.append(elem_in)
+        return self.evaluate(new_sol) - self.evaluate(sol)
+    
+    def print_matrix(self) -> None:
+        for i in range(self.size):
+            for j in range(i, self.size):
+                print(self.A[i, j], end=" ")
+            print()

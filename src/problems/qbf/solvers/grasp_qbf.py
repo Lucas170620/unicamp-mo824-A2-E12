@@ -1,8 +1,8 @@
 import numpy as np
+from src.problems.qbf.qbf import QBF
 from src.metaheuristics.grasp.abstract_grasp import AbstractGRASP
 from typing import List
 
-from src.problems.qbf.qbf_inverse import QBF_Inverse
 from src.solutions.solution import Solution
 
 
@@ -10,7 +10,7 @@ from src.solutions.solution import Solution
 
 class GRASP_QBF(AbstractGRASP[int]):
     def __init__(self, alpha: float, iterations: int, filename: str):
-        super().__init__(QBF_Inverse(filename), alpha, iterations)
+        super().__init__(QBF(filename), alpha, iterations)
     
     def makeCL(self) -> List[int]:
         return list(range(self.ObjFunction.get_domain_size()))
