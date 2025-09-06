@@ -109,13 +109,13 @@ class SCQBF(Evaluator[int]):
         with open(filename, 'r') as file:
             first_line = file.readline().strip()
             size = int(first_line)
+            second_line = file.readline().strip()
+            subsets_sizes = list(map(int, second_line.split()))
             subsets = []
-            for _ in range(size):
-                data = file.readline().split()
-                k = int(data[0])
-                elements = list(map(int, data[1:1+k]))
-                elements = [e - 1 for e in elements]  # Converter para 0-indexed
-                subsets.append(elements)
+            for subset_size in subsets_sizes:
+                line = file.readline().strip()
+                subset = list(map(int, line.split()))
+                subsets.append(subset)
             
             A = np.zeros((size, size))
             for i in range(size):
@@ -145,15 +145,15 @@ class SCQBF(Evaluator[int]):
         cover_count = np.zeros(self.size, dtype=int)
         for elem in sol:
             for covered_element in self.subsets[elem]:
-                cover_count[covered_element] += 1
+                cover_count[covered_element - 1] += 1
         return np.all(cover_count >= 1)
     
     def evaluate(self, sol: Solution[int]) -> float:
-        if not self.is_cover(sol):
-            return -10**9  # Penalidade para soluções inviáveis
         self.set_variables(sol)
-        sol.cost = self.evaluateQBF()
-        return sol.cost
+        cost_val = self.evaluateQBF()
+        if hasattr(sol, 'cost'):
+            sol.cost = cost_val
+        return cost_val
     
     def evaluateQBF(self) -> float:
         vec_aux = np.zeros(self.size)
