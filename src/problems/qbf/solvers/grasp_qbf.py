@@ -4,6 +4,7 @@ from src.metaheuristics.grasp.abstract_grasp import AbstractGRASP
 from typing import List
 
 from src.solutions.solution import Solution
+from src.utils.utils import find_and_apply_first_exchange, find_and_apply_first_insertion, find_and_apply_first_removal
 
 
 
@@ -71,3 +72,19 @@ class GRASP_QBF(AbstractGRASP[int]):
         
         return self.sol
 
+class GRASP_QBF_First_Improvement(GRASP_QBF):
+    def localSearch(self) -> Solution[int]:
+
+        while True:
+            if find_and_apply_first_insertion(self):
+                continue
+            
+            if find_and_apply_first_removal(self):
+                continue
+            
+            if find_and_apply_first_exchange(self):
+                continue            
+            break
+
+        self.ObjFunction.evaluate(self.sol)
+        return self.sol

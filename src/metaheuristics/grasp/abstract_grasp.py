@@ -9,7 +9,7 @@ E = TypeVar('E')
 
 
 class AbstractGRASP(ABC, Generic[E]):
-    verbose = True
+    verbose = False
     rng = random.Random(0)
     
     def __init__(self, obj_function: Evaluator[E], alpha: float, iterations: int):
