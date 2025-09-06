@@ -4,9 +4,8 @@ from src.problems.qbf.solvers.grasp_qbf import GRASP_QBF, GRASP_QBF_First_Improv
 
 
 if __name__ == "__main__":
-    n = 400
-    instancia = f"instances/qbf/qbf{n}"
-    interations = 100
+    instancia = f"instances/qbf/qbf050"
+    interations = 20
     alpha_1 = 0.1
     alpha_2 = 0.9
     resultados = [["name", "maxVal", "time"]]
@@ -16,13 +15,15 @@ if __name__ == "__main__":
     cost = - best_sol.cost
     end_time = time.time()
     total_time = end_time - start_time
-    resultados.append(["GRASP QBF PADRÃO Best Improvement alfa=0.3", cost, total_time])
+    resultados.append([f"GRASP QBF PADRÃO Best Improvement alfa={alpha_2}", cost, total_time])
 
     start_time = time.time()
     grasp = GRASP_QBF(alpha=alpha_1, iterations=interations, filename=instancia)
     best_sol = grasp.solve()
     cost = - best_sol.cost
-    resultados.append(["GRASP QBF PADRÃO Best Improvement alfa=0.1", cost, total_time])
+    end_time = time.time()
+    total_time = end_time - start_time
+    resultados.append([f"GRASP QBF PADRÃO Best Improvement alfa={alpha_1}", cost, total_time])
     end_time = time.time()
 
     reactive_grasp = ReactiveGRASP_QBF(alpha_values=[0.1, 0.3, 0.5, 0.7, 0.9], iterations=interations, filename=instancia)
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     cost_first_improvement = - best_sol_first_improvement.cost
     end_time_first_improvement = time.time()
     total_time_first_improvement = end_time_first_improvement - start_time
-    resultados.append(["GRASP QBF First Improvement alfa=0.3", cost_first_improvement, total_time_first_improvement])
+    resultados.append([f"GRASP QBF First Improvement alfa={alpha_2}", cost_first_improvement, total_time_first_improvement])
 
     start_time = time.time()
     grasp_first_improvement = GRASP_QBF_First_Improvement(alpha=alpha_1, iterations=interations, filename=instancia)
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     cost_first_improvement = - best_sol_first_improvement.cost
     end_time_first_improvement = time.time()
     total_time_first_improvement = end_time_first_improvement - start_time
-    resultados.append(["GRASP QBF First Improvement alfa=0.1", cost_first_improvement, total_time_first_improvement])
+    resultados.append([f"GRASP QBF First Improvement alfa={alpha_1}", cost_first_improvement, total_time_first_improvement])
 
     start_time = time.time()
     reactive_grasp_first_improvement = ReactiveGRASP_QFG_First_Improvement(alpha_values=[0.1, 0.3, 0.5, 0.7, 0.9], iterations=interations, filename=instancia)

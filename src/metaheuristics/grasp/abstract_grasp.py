@@ -78,15 +78,25 @@ class AbstractGRASP(ABC, Generic[E]):
     
     def solve(self) -> Solution[E]:
         self.best_sol = self.createEmptySol()
+        
+        no_improvement_counter = 0
+        max_no_improvement = 5
+
         for i in range(self.iterations):
             self.constructiveHeuristic()
             self.localSearch()
             if self.best_sol.cost > self.sol.cost:
                 self.best_sol = Solution(self.sol)
                 self.best_sol.cost = self.sol.cost
+                no_improvement_counter = 0
                 if self.verbose:
-                    print(f"(Iter. {i}) BestSol = {self.best_sol}")
-        
+                    print(f"(Iter. {i}) New BestSol = {self.best_sol.cost}")
+            else:
+                no_improvement_counter += 1
+            if no_improvement_counter >= max_no_improvement:
+                if self.verbose:
+                    print(f"\nStopping early at iteration {i} due to no improvement in the last {max_no_improvement} iterations.")
+                break 
         return self.best_sol
     
     def constructiveStopCriteria(self) -> bool:
