@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from src.problems.qbf.qbf_inverse import SCQBF_Inverse
 from src.metaheuristics.grasp.abstract_grasp import AbstractGRASP
@@ -5,13 +6,15 @@ from typing import List
 
 from src.solutions.solution import Solution
 from src.utils.utils import find_and_apply_first_exchange, find_and_apply_first_insertion, find_and_apply_first_removal
+from src.utils.constantes import *
 
 
 
 
-class GRASP_QBF(AbstractGRASP[int]):
+class CostPerturbationGRASP_QBF(AbstractGRASP[int]):
     def __init__(self, alpha: float, iterations: int, filename: str):
         super().__init__(SCQBF_Inverse(filename), alpha, iterations)
+        self.ObjFunction.A = self.cost_perturbation(self.ObjFunction.A, intensity=0.1)
     
     def makeCL(self) -> List[int]:
         return list(range(self.ObjFunction.get_domain_size()))
@@ -26,6 +29,37 @@ class GRASP_QBF(AbstractGRASP[int]):
         sol = Solution()
         sol.cost = 0.0
         return sol
+    
+
+    def solve(self) -> Solution[int]:
+        self.best_sol = self.createEmptySol()
+        no_improvement_counter = 0
+        max_no_improvement = MAX_NO_IMPROVEMENT
+        start_time = time.time()
+        time_max = MAX_TIME
+        while True:
+            if time.time() - start_time > time_max:
+                break
+            self.constructiveHeuristic()
+            self.localSearch()
+            if self.best_sol.cost > self.sol.cost:
+                self.best_sol = Solution(self.sol)
+                self.best_sol.cost = self.sol.cost
+                no_improvement_counter = 0
+                if self.verbose:
+                    print(f"(Iter.) New BestSol = {self.best_sol.cost}")
+            else:
+                no_improvement_counter += 1
+            if no_improvement_counter >= max_no_improvement:
+                if self.verbose:
+                    print(f"\nStopping early at iteration  due to no improvement in the last {max_no_improvement} iterations.")
+                break 
+        return self.best_sol
+    
+    def cost_perturbation(self, base_coeffs: np.ndarray, intensity: float = 0.1) -> np.ndarray:
+        perturbed = base_coeffs.copy()
+        perturbation = np.random.uniform(-intensity, intensity, base_coeffs.shape)
+        return perturbed * (1 + perturbation)
     
     def localSearch(self) -> Solution[int]:
         while True:
@@ -72,8 +106,9 @@ class GRASP_QBF(AbstractGRASP[int]):
         
         return self.sol
 
-class GRASP_QBF_First_Improvement(GRASP_QBF):
+class Cost_Pertubation_GRASP_QBF_First_Improvement(CostPerturbationGRASP_QBF):
     def localSearch(self) -> Solution[int]:
+
         while True:
             if find_and_apply_first_insertion(self):
                 continue

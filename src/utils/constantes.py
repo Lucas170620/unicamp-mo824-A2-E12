@@ -1,0 +1,9 @@
+MAX_TIME = 30 * 60
+
+ALPHA_1 = 0.1
+ALPHA_2 = 0.3
+
+MAX_NO_IMPROVEMENT = 100
+
+
+ALPHA_VALUES = [0.1, 0.3, 0.5, 0.7, 0.9]

@@ -1,9 +1,10 @@
 import random
 from abc import ABC, abstractmethod
 from typing import List, TypeVar, Generic, Optional
-
+import time
 from src.problems.evaluator import Evaluator
 from src.solutions.solution import Solution
+from src.utils.constantes import *
 
 E = TypeVar('E')
 
@@ -78,11 +79,13 @@ class AbstractGRASP(ABC, Generic[E]):
     
     def solve(self) -> Solution[E]:
         self.best_sol = self.createEmptySol()
-        
         no_improvement_counter = 0
-        max_no_improvement = 5
-
-        for i in range(self.iterations):
+        max_no_improvement = MAX_NO_IMPROVEMENT
+        start_time = time.time()
+        time_max = MAX_TIME
+        while True:
+            if time.time() - start_time > time_max:
+                break
             self.constructiveHeuristic()
             self.localSearch()
             if self.best_sol.cost > self.sol.cost:
@@ -90,12 +93,12 @@ class AbstractGRASP(ABC, Generic[E]):
                 self.best_sol.cost = self.sol.cost
                 no_improvement_counter = 0
                 if self.verbose:
-                    print(f"(Iter. {i}) New BestSol = {self.best_sol.cost}")
+                    print(f"(Iter.) New BestSol = {self.best_sol.cost}")
             else:
                 no_improvement_counter += 1
             if no_improvement_counter >= max_no_improvement:
                 if self.verbose:
-                    print(f"\nStopping early at iteration {i} due to no improvement in the last {max_no_improvement} iterations.")
+                    print(f"\nStopping early at iteration  due to no improvement in the last {max_no_improvement} iterations.")
                 break 
         return self.best_sol
     

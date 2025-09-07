@@ -1,8 +1,10 @@
 import random
+import time
 import numpy as np
 from typing import List
 from src.problems.qbf.solvers.grasp_qbf import GRASP_QBF, GRASP_QBF_First_Improvement
 from src.solutions.solution import Solution
+from src.utils.constantes import *
 
 class ReactiveGRASP_QBF(GRASP_QBF):
     def __init__(self, alpha_values: List[float], iterations: int, filename: str, reactive_update_block: int = 50):
@@ -111,12 +113,18 @@ class ReactiveGRASP_QFG_First_Improvement(GRASP_QBF_First_Improvement):
 
     def solve(self) -> Solution[int]:
         self.best_sol = self.createEmptySol()
-        for i in range(self.iterations):
+        no_improvement_counter = 0
+        i = 0
+        max_no_improvement = MAX_NO_IMPROVEMENT
+        start_time = time.time()
+        time_max = MAX_TIME
+        while True:
+            if time.time() - start_time > time_max:
+                break
             self.alpha = self.choose_alpha()
             self.constructiveHeuristic()
             self.localSearch()
 
-            # Avaliar solução com penalidades
             current_value = -self._evaluate_with_penalty(self.sol)
             idx = self.alpha_values.index(self.alpha)
             self.alpha_performance[idx] += current_value
@@ -129,10 +137,18 @@ class ReactiveGRASP_QFG_First_Improvement(GRASP_QBF_First_Improvement):
                 if self.verbose:
                     print(f"(Iter. {i}) BestSol = {self.best_sol}")
 
+            
+            else:
+                no_improvement_counter += 1
+            if no_improvement_counter >= max_no_improvement:
+                if self.verbose:
+                    print(f"\nStopping early at iteration  due to no improvement in the last iterations.")
+                break
+
             if i % self.reactive_update_block == 0 and i > 0:
                 self.update_alpha_probabilities()
                 if self.verbose:
                     print(f"Updated alpha probabilities: {list(zip(self.alpha_values, self.alpha_probs))}")
-
+            i += 1
         return self.best_sol
     
