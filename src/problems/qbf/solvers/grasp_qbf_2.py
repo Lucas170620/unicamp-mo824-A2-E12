@@ -45,11 +45,11 @@ class CostPerturbationGRASP_QBF(AbstractGRASP[int]):
 
             self.ObjFunction.A = self.cost_perturbation(self.ObjFunction.A, intensity=0.1)
             remaining_time = time_max - (time.time() - start_time)
-            self.constructiveHeuristic(max_time=remaining_time)
+            self.constructiveHeuristic()
 
             self.ObjFunction.A = A_qrq
             remaining_time = time_max - (time.time() - start_time)
-            self.localSearch(max_time=remaining_time)
+            self.localSearch()
 
             if self.best_sol.cost > self.sol.cost:
                 self.best_sol = Solution(self.sol)
@@ -70,11 +70,11 @@ class CostPerturbationGRASP_QBF(AbstractGRASP[int]):
         perturbation = np.random.uniform(-intensity, intensity, base_coeffs.shape)
         return perturbed * (1 + perturbation)
     
-    def localSearch(self, max_time=None) -> Solution[int]:
+    def localSearch(self) -> Solution[int]:
         start_time = time.time()
 
         while True:
-            if time.time() - start_time > max_time:
+            if time.time() - start_time > MAX_TIME:
                 break
             min_delta_cost = float('inf')
             best_cand_in = None
@@ -120,11 +120,11 @@ class CostPerturbationGRASP_QBF(AbstractGRASP[int]):
         return self.sol
 
 class Cost_Pertubation_GRASP_QBF_First_Improvement(CostPerturbationGRASP_QBF):
-    def localSearch(self, max_time=None) -> Solution[int]:
+    def localSearch(self) -> Solution[int]:
         start_time = time.time()
 
         while True:
-            if time.time() - start_time > max_time:
+            if time.time() - start_time > MAX_TIME:
                 break
             
             if find_and_apply_first_insertion(self):
